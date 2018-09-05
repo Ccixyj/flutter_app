@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/ClickAddPage.dart';
+import 'package:flutter_app/RandomWord.dart';
 import 'package:flutter_app/event/EventBus.dart';
 
 class Entry {
@@ -19,7 +20,10 @@ class MainPage extends StatelessWidget {
   final data = <Entry>[
     Entry("demos", children: [
       Entry("click demo",
-          route: MaterialPageRoute(builder: (ctx) => ClickAddPage(title: "click demo")))
+          route: MaterialPageRoute(
+              builder: (ctx) => ClickAddPage(title: "click demo"))),
+      Entry("word demo",
+          route: MaterialPageRoute(builder: (ctx) => RandomWords()))
     ]),
   ];
 
@@ -62,10 +66,9 @@ class EntryItem extends StatelessWidget {
       return ListTile(
           title: Text(root.title),
           onTap: () {
-            if (root.route is Route) {
-              //对应功能
-              Navigator.of(ctx).push(root.route as Route);
-            }
+            print(root.route);
+            //对应功能
+            Navigator.of(ctx).push(root.route);
           });
     }
 
