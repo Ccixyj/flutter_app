@@ -4,7 +4,7 @@ class InfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(24.0),
           child: Center(
             child: Text(_info),
           ),
