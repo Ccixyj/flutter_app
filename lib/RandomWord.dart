@@ -18,7 +18,7 @@ class RandomWordsState extends State<RandomWords> {
       appBar: new AppBar(
         title: new Text("Start up for loop text  word pair"),
         actions: <Widget>[
-          new IconButton(icon: new Icon(Icons.clear), onPressed: _shuffle)
+          new IconButton(icon: new Icon(Icons.cached), onPressed: _shuffle)
         ],
       ),
       body: _buildSuggestions(),

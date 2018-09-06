@@ -21,6 +21,8 @@ public class MainActivity extends FlutterActivity {
 
         GeneratedPluginRegistrant.registerWith(this);
 
+        new ToastPlugin(this, getFlutterView());
+
         final MethodChannel mc = new MethodChannel(getFlutterView(), "app.channel.plugin/share");
 
 
@@ -52,7 +54,7 @@ public class MainActivity extends FlutterActivity {
                     mc.invokeMethod("getWordWithParams", l, new MethodChannel.Result() {
                         @Override
                         public void success(Object o) {
-                            Toast.makeText(MainActivity.this, o.toString(), Toast.LENGTH_LONG).show();
+                            Log.d("success  ", o.toString());
                         }
 
                         @Override

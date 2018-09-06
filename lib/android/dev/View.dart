@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:async/async.dart';
 import 'package:english_words/english_words.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/event/EventBus.dart';
 
 class ViewPage extends StatefulWidget {
   ViewPage(this.caseType);
@@ -238,19 +240,23 @@ class _CustomState extends State<ViewPage> {
 class _InterActAppPageState extends State<ViewPage> {
   static const chann = const MethodChannel('app.channel.plugin/share');
   String dataShared = "No data";
+  CancelableOperation f;
 
   @override
   void initState() {
     super.initState();
     uuid();
+    f = testToast();
     chann.setMethodCallHandler((call) {
       switch (call.method) {
         case "getWord":
-          return Future.value("from flutter : ${WordPair.random().asCamelCase}");
+          return Future.value(
+              "from flutter : ${WordPair.random().asCamelCase}");
           break;
 
         case "getWordWithParams":
-          return Future.value("from flutter : params ${call.arguments}  ${WordPair.random().asCamelCase}");
+          return Future.value(
+              "from flutter : params ${call.arguments}  ${WordPair.random().asCamelCase}");
           break;
       }
     });
@@ -261,6 +267,14 @@ class _InterActAppPageState extends State<ViewPage> {
     return Scaffold(body: Center(child: Text(dataShared)));
   }
 
+
+  @override
+  void dispose() {
+    print("cancel f");
+    f.cancel();
+    super.dispose();
+  }
+
   uuid() async {
     var sharedData = await chann.invokeMethod("getUUID");
     if (sharedData != null) {
@@ -268,5 +282,16 @@ class _InterActAppPageState extends State<ViewPage> {
         dataShared = sharedData;
       });
     }
+  }
+
+  CancelableOperation testToast() {
+    return CancelableOperation.fromFuture(Future.delayed(Duration(seconds: 2), () {
+    }).then((e) {
+      print("mounted $mounted");
+      eventBus.fire(ToastEvent("testToast"));
+      setState(() {
+        dataShared = "send toast ok!~";
+      });
+    }));
   }
 }
