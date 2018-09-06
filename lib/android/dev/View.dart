@@ -235,15 +235,25 @@ class _CustomState extends State<ViewPage> {
   }
 }
 
-
 class _InterActAppPageState extends State<ViewPage> {
-  static const platform = const MethodChannel('app.channel.plugin/share');
+  static const chann = const MethodChannel('app.channel.plugin/share');
   String dataShared = "No data";
 
   @override
   void initState() {
     super.initState();
-    getSharedText();
+    uuid();
+    chann.setMethodCallHandler((call) {
+      switch (call.method) {
+        case "getWord":
+          return Future.value("from flutter : ${WordPair.random().asCamelCase}");
+          break;
+
+        case "getWordWithParams":
+          return Future.value("from flutter : params ${call.arguments}  ${WordPair.random().asCamelCase}");
+          break;
+      }
+    });
   }
 
   @override
@@ -251,8 +261,8 @@ class _InterActAppPageState extends State<ViewPage> {
     return Scaffold(body: Center(child: Text(dataShared)));
   }
 
-  getSharedText() async {
-    var sharedData = await platform.invokeMethod("getUUID");
+  uuid() async {
+    var sharedData = await chann.invokeMethod("getUUID");
     if (sharedData != null) {
       setState(() {
         dataShared = sharedData;
