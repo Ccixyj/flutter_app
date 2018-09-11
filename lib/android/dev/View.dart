@@ -1,10 +1,13 @@
 import 'dart:async';
-import 'package:async/async.dart';
+import 'dart:convert';
+import 'dart:isolate';
 import 'package:english_words/english_words.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/event/EventBus.dart';
+import 'package:http/http.dart' as http;
+import 'package:transparent_image/transparent_image.dart';
 
 class ViewPage extends StatefulWidget {
   ViewPage(this.caseType);
@@ -30,6 +33,18 @@ class ViewPage extends StatefulWidget {
         return _CustomState();
       case 6:
         return _InterActAppPageState();
+
+      case 7:
+        return _HandlerBackResult();
+
+      case 8:
+        return _AsyncUI();
+
+      case 9:
+        return _CPUBoundUI();
+
+      case 10:
+        return _AssertsUI();
     }
   }
 }
@@ -240,13 +255,14 @@ class _CustomState extends State<ViewPage> {
 class _InterActAppPageState extends State<ViewPage> {
   static const chann = const MethodChannel('app.channel.plugin/share');
   String dataShared = "No data";
-  CancelableOperation f;
+  StreamSubscription f;
 
   @override
   void initState() {
     super.initState();
     uuid();
     f = testToast();
+
     chann.setMethodCallHandler((call) {
       switch (call.method) {
         case "getWord":
@@ -267,7 +283,6 @@ class _InterActAppPageState extends State<ViewPage> {
     return Scaffold(body: Center(child: Text(dataShared)));
   }
 
-
   @override
   void dispose() {
     print("cancel f");
@@ -284,14 +299,220 @@ class _InterActAppPageState extends State<ViewPage> {
     }
   }
 
-  CancelableOperation testToast() {
-    return CancelableOperation.fromFuture(Future.delayed(Duration(seconds: 2), () {
-    }).then((e) {
-      print("mounted $mounted");
-      eventBus.fire(ToastEvent("testToast"));
-      setState(() {
-        dataShared = "send toast ok!~";
+  StreamSubscription testToast() {
+    return Future.delayed(Duration(milliseconds: 1200), () {
+      print("delay executed!!!!");
+    }).asStream().listen((t) {
+      print("recive val $t");
+      eventBus.fire(ToastEvent("toast event"));
+    });
+  }
+}
+
+class _HandlerBackResult extends State<ViewPage> {
+  static const chann = const MethodChannel('app.channel.plugin/share');
+  String dataShared = "No data";
+
+  @override
+  void initState() {
+    super.initState();
+    uuid();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(body: Center(child: Text(dataShared)));
+  }
+
+  uuid() {
+    Future.value(chann.invokeMethod("getUUID")).then((t) {
+      if (t != null) {
+        setState(() {
+          dataShared = t;
+        });
+      }
+
+      Future.delayed(Duration(milliseconds: 1000), () {
+        Navigator.of(context).pop({'res': "result ok!", 'data': t});
       });
-    }));
+    });
+  }
+}
+
+class _AsyncUI extends State<ViewPage> {
+  List widgets = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Widget buildBody() {
+    if (widgets.isEmpty) {
+      return Center(
+        child: Text("loading"),
+      );
+    } else {
+      return ListView.builder(
+        itemBuilder: _buildRow,
+        itemCount: widgets.length,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(body: buildBody());
+  }
+
+  void _loadData() async {
+    String dataURL = "https://jsonplaceholder.typicode.com/posts";
+    http.Response response = await http.get(dataURL);
+    setState(() {
+      widgets = json.decode(response.body);
+      print(widgets);
+    });
+  }
+
+  Widget _buildRow(BuildContext context, int index) {
+    return Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Text("Row ${widgets[index]["title"]}"));
+  }
+}
+
+class _CPUBoundUI extends State<ViewPage> {
+  List widgets = [];
+  SendPort sendPort;
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  showLoadingDialog() {
+    if (widgets.length == 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  getBody() {
+    if (showLoadingDialog()) {
+      return getProgressDialog();
+    } else {
+      return getListView();
+    }
+  }
+
+  getProgressDialog() {
+    return Center(child: CircularProgressIndicator());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Sample App"),
+        ),
+        body: getBody());
+  }
+
+  ListView getListView() => ListView.builder(
+      itemCount: widgets.length,
+      itemBuilder: (BuildContext context, int position) {
+        return getRow(position);
+      });
+
+  Widget getRow(int i) {
+    return Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Text("Row ${widgets[i]["title"]}"));
+  }
+
+  loadData() async {
+    ReceivePort receivePort = ReceivePort();
+    await Isolate.spawn(dataLoader, receivePort.sendPort);
+
+    // The 'echo' isolate sends its SendPort as the first message
+    sendPort = await receivePort.first;
+
+    List msg = await sendReceive(
+        sendPort, "https://jsonplaceholder.typicode.com/posts");
+    if (this.mounted) {
+      setState(() {
+        widgets = msg;
+      });
+    }
+  }
+
+  // the entry point for the isolate
+  static void dataLoader(SendPort sendPort) async {
+    // Open the ReceivePort for incoming messages.
+    ReceivePort port = ReceivePort();
+
+    // Notify any other isolates what port this isolate listens to.
+    sendPort.send(port.sendPort);
+
+    await for (var msg in port) {
+      String data = msg[0];
+      SendPort replyTo = msg[1];
+
+      if (replyTo == null || data == "close") {
+        port.close();
+      } else {
+        String dataURL = data;
+        http.Response response = await http.get(dataURL);
+        // Lots of JSON to parse
+        replyTo.send(json.decode(response.body));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    sendPort.send(["close", null]);
+  }
+
+  Future sendReceive(SendPort port, msg) {
+    ReceivePort response = ReceivePort();
+    port.send([msg, response.sendPort]);
+    return response.first;
+  }
+}
+
+class _AssertsUI extends State<ViewPage> {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Center(child: CircularProgressIndicator()),
+              Center(
+                child: FadeInImage.memoryNetwork(
+                  placeholder: kTransparentImage,
+                  image:
+                      'https://raw.githubusercontent.com/flutter/website/dash/src/_includes/code/layout/stack/images/pic.jpg',
+                ),
+              ),
+            ],
+          ),
+          Divider(color: Colors.white),
+          FadeInImage.memoryNetwork(
+            placeholder: kTransparentImage,
+            image:
+                'https://github.com/flutter/website/blob/master/src/_includes/code/layout/lakes/images/lake.jpg?raw=true',
+          ),
+          Divider(color: Colors.white),
+          Image.asset("assets/images/dog.jpg")
+        ],
+      ),
+    );
   }
 }

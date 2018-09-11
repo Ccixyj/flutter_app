@@ -5,6 +5,7 @@ import 'package:flutter_app/RandomWord.dart';
 import 'package:flutter_app/event/EventBus.dart';
 import 'android/dev/View.dart';
 
+
 class Entry {
   Entry(this.title, {this.builder, this.children = const <Entry>[]});
 
@@ -44,10 +45,25 @@ This document can be used as a cookbook by jumping around and finding questions 
             builder: (ctx) => ViewPage(5)),
       ]),
       Entry("  Intent", children: [
-        Entry(
-            "     How do I handle incoming intents from external applications in Flutter? ",
-            builder: (ctx) => ViewPage(6))
+        Entry("    How do I handle incoming intents from external applications in Flutter? ",
+            builder: (ctx) => ViewPage(6)),
+        Entry("     What is the equivalent of startActivityForResult()?",
+            builder: (ctx) => ViewPage(7))
+      ]),
+      Entry("  Async UI", children: [
+        Entry( "    What is the equivalent of runOnUiThread() in Flutter?",
+            builder: (ctx) => ViewPage(8)),
+        Entry("     How do you move work to a background thread?",
+            builder: (ctx) => ViewPage(9))
+      ]),
+
+      Entry("  Project structure & resources", children: [
+        Entry( "    Where do I store my resolution-dependent image files?",
+            builder: (ctx) => ViewPage(10)),
+        Entry("     How do you move work to a background thread?",
+            builder: (ctx) => ViewPage(9))
       ])
+
     ])
   ];
 
@@ -92,7 +108,11 @@ class EntryItem extends StatelessWidget {
           onTap: () {
             print(root);
             //对应功能
-            Navigator.push(ctx, MaterialPageRoute(builder: root.builder));
+            var f =
+                Navigator.push(ctx, MaterialPageRoute(builder: root.builder));
+            f.asStream().listen((e) {
+              print("pop back value is :${e.toString()}");
+            });
           });
     }
 
