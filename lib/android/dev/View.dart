@@ -6,13 +6,16 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/event/EventBus.dart';
+import 'package:flutter_app/model/LifeCycleModel.dart';
+import 'package:flutter_app/model/LifeCycleViewModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:scoped_model/scoped_model.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class ViewPage extends StatefulWidget {
   ViewPage(this.caseType);
 
-  int caseType = 0;
+  final int caseType;
 
   @override
   State createState() {
@@ -31,6 +34,9 @@ class ViewPage extends StatefulWidget {
 
       case 5:
         return _CustomState();
+      case 51:
+        return _MyInheritedState();
+
       case 6:
         return _InterActAppPageState();
 
@@ -47,9 +53,60 @@ class ViewPage extends StatefulWidget {
         return _AssertsUI();
 
       case 11:
-        return _LifeCycleWatcherUI();
+        return _ScopedLifeCycleWatcherUI();
+
+      case 12:
+        return _RxLifeCycleWatcherUI();
+
+      default:
+        return _EmptyUI(caseType);
     }
   }
+}
+
+class _MyInheritedState extends State<ViewPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("MyInheritedState"),
+      ),
+      body: MyInheritWidget(
+        "pass value",
+        child: Center(
+          child: Builder(
+            builder: (c) => Text(MyInheritWidget.of(c).name),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyInheritWidget extends InheritedWidget {
+  final String name;
+
+  MyInheritWidget(this.name, {Key key, @required Widget child})
+      : assert(child != null),
+        super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(MyInheritWidget oldWidget) =>
+      this.name != oldWidget.name;
+
+  static MyInheritWidget of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(MyInheritWidget);
+}
+
+class _EmptyUI extends State<ViewPage> {
+  int caseType;
+
+  _EmptyUI(this.caseType);
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Text("nothing match for case type :$caseType "),
+      );
 }
 
 class _UpdateViewPageState extends State<ViewPage> {
@@ -520,16 +577,15 @@ class _AssertsUI extends State<ViewPage> {
   }
 }
 
-class _LifeCycleWatcherUI extends State<ViewPage> with WidgetsBindingObserver {
-  var listStates = <AppLifecycleState>[];
-
+class _ScopedLifeCycleWatcherUI extends State<ViewPage>
+    with WidgetsBindingObserver {
+  var cacheLength = -1;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
-
 
   @override
   void dispose() {
@@ -539,25 +595,145 @@ class _LifeCycleWatcherUI extends State<ViewPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      listStates.add(state);
-    });
+    super.didChangeAppLifecycleState(state);
+    ScopedModel.of<LifeCycleModel>(context).add(state);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemBuilder: (context, i) => GestureDetector(
-              child: ListTile(
-                title: Text("$i . ${listStates[i]}"),
-              ),
-              onTap: () {
-                print("row tapped $i . ${listStates[i]}");
-              },
-            ),
-        itemCount: listStates.length,
+      body: ScopedModelDescendant<LifeCycleModel>(
+        builder: (a, b, c) {
+          return ListView.builder(
+            itemBuilder: (context, i) => GestureDetector(
+                  child: ListTile(
+                    title: Builder(
+                      builder: (ctx) {
+                        print("build $i: ${c.eventStates[i]}");
+                        return Text("$i . ${c.eventStates[i]}");
+                      },
+                    ),
+                  ),
+                  onTap: () {
+                    print("row tapped $i . ${c.eventStates[i]}");
+                  },
+                ),
+            itemCount: cacheLength = c.eventStates.length,
+          );
+        },
+        rebuildOnChange:
+            ScopedModel.of<LifeCycleModel>(context).eventStates.length !=
+                cacheLength,
       ),
     );
+  }
+}
+
+class _RxLifeCycleWatcherUI extends State<ViewPage>
+    with WidgetsBindingObserver {
+  final m = LifeCycleViewModel();
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    m.dispose();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return LifeCycleProvider(
+      m,
+      child: Scaffold(
+        appBar: AppBar(title: Text("rxcommand"), actions: <Widget>[
+          Builder(
+            builder: (c) => StateFullSwitch(
+                  state: true,
+                  onChanged: LifeCycleProvider.of(c).switchCommand,
+                ),
+          ),
+        ]),
+        body: Column(
+          children: <Widget>[
+            new Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: new TextField(
+                autocorrect: false,
+                decoration: new InputDecoration(
+                  hintText: "Filter cities",
+                  hintStyle:
+                      new TextStyle(color: new Color.fromARGB(150, 0, 0, 0)),
+                ),
+                style: new TextStyle(
+                    fontSize: 20.0, color: new Color.fromARGB(255, 0, 0, 0)),
+                onChanged: m.textChangedCommand,
+              ),
+            ),
+            Flexible(
+              child: StreamBuilder(
+                  stream: m.appStateCommand,
+                  builder: (BuildContext c,
+                      AsyncSnapshot<List<WordPair>> asyncData) {
+                    var m = LifeCycleProvider.of(c);
+                    if (asyncData.hasData && asyncData.data.isNotEmpty) {
+                      return ListView.builder(
+                          itemBuilder: (context, i) => GestureDetector(
+                                child: ListTile(
+                                  title: Builder(
+                                    builder: (ctx) {
+                                      print("build $i: ${asyncData.data[i]}");
+                                      return Text("$i . ${asyncData.data[i]}");
+                                    },
+                                  ),
+                                ),
+                                onTap: () {
+                                  print("row tapped $i . ${asyncData.data[i]}");
+                                },
+                                onLongPress: (){
+                                  m.remove(i);
+                                },
+                              ),
+                          itemCount: asyncData.data.length);
+                    } else {
+                      return Center(
+                        child: Text("not data"),
+                      );
+                    }
+                  }),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class StateFullSwitch extends StatefulWidget {
+  final bool state;
+  final ValueChanged<bool> onChanged;
+
+  StateFullSwitch({this.state, this.onChanged});
+
+  @override
+  StateFullSwitchState createState() {
+    return new StateFullSwitchState(state, onChanged);
+  }
+}
+
+class StateFullSwitchState extends State<StateFullSwitch> {
+  bool state;
+  ValueChanged<bool> handler;
+
+  StateFullSwitchState(this.state, this.handler);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Switch(
+        value: state,
+        onChanged: (b) {
+          setState(() => state = b);
+          handler(b);
+        });
   }
 }

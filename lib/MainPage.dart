@@ -3,8 +3,10 @@ import 'package:flutter_app/ClickAddPage.dart';
 import 'package:flutter_app/InfoPage.dart';
 import 'package:flutter_app/RandomWord.dart';
 import 'package:flutter_app/event/EventBus.dart';
+import 'package:flutter_app/model/LifeCycleModel.dart';
+import 'package:flutter_app/model/LifeCycleViewModel.dart';
 import 'android/dev/View.dart';
-
+import 'package:scoped_model/scoped_model.dart';
 
 class Entry {
   Entry(this.title, {this.builder, this.children = const <Entry>[]});
@@ -20,6 +22,8 @@ class Entry {
 }
 
 class MainPage extends StatelessWidget {
+  static final eventModel = new LifeCycleModel();
+
   final data = <Entry>[
     Entry("demos", children: [
       Entry("click demo", builder: (ctx) => ClickAddPage(title: "click demo")),
@@ -43,29 +47,37 @@ This document can be used as a cookbook by jumping around and finding questions 
             builder: (ctx) => ViewPage(4)),
         Entry("    How do I build custom widgets?",
             builder: (ctx) => ViewPage(5)),
+        Entry("    How do I use inheritWidgets?",
+            builder: (ctx) => ViewPage(51)),
       ]),
       Entry("  Intent", children: [
-        Entry("    How do I handle incoming intents from external applications in Flutter? ",
+        Entry(
+            "    How do I handle incoming intents from external applications in Flutter? ",
             builder: (ctx) => ViewPage(6)),
         Entry("     What is the equivalent of startActivityForResult()?",
             builder: (ctx) => ViewPage(7))
       ]),
       Entry("  Async UI", children: [
-        Entry( "    What is the equivalent of runOnUiThread() in Flutter?",
+        Entry("    What is the equivalent of runOnUiThread() in Flutter?",
             builder: (ctx) => ViewPage(8)),
         Entry("     How do you move work to a background thread?",
             builder: (ctx) => ViewPage(9))
       ]),
-
       Entry("  Project structure & resources", children: [
-        Entry( "    Where do I store my resolution-dependent image files?",
+        Entry("    Where do I store my resolution-dependent image files?",
             builder: (ctx) => ViewPage(10)),
       ]),
       Entry("  Activities and fragments", children: [
-        Entry( "    How do I listen to Android activity lifecycle events?",
-            builder: (ctx) => ViewPage(11)),
+        Entry(
+            "    How do I listen to Android activity lifecycle events(ScopedModel)?",
+            builder: (ctx) => ScopedModel<LifeCycleModel>(
+                  model: eventModel,
+                  child: ViewPage(11),
+                )),
+        Entry(
+            "    How do I listen to Android activity lifecycle events(RxDart)?",
+            builder: (ctx) => ViewPage(12))
       ])
-
     ])
   ];
 
