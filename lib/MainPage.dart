@@ -60,8 +60,10 @@ This document can be used as a cookbook by jumping around and finding questions 
       Entry("  Project structure & resources", children: [
         Entry( "    Where do I store my resolution-dependent image files?",
             builder: (ctx) => ViewPage(10)),
-        Entry("     How do you move work to a background thread?",
-            builder: (ctx) => ViewPage(9))
+      ]),
+      Entry("  Activities and fragments", children: [
+        Entry( "    How do I listen to Android activity lifecycle events?",
+            builder: (ctx) => ViewPage(11)),
       ])
 
     ])

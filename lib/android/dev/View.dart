@@ -45,6 +45,9 @@ class ViewPage extends StatefulWidget {
 
       case 10:
         return _AssertsUI();
+
+      case 11:
+        return _LifeCycleWatcherUI();
     }
   }
 }
@@ -512,6 +515,48 @@ class _AssertsUI extends State<ViewPage> {
           Divider(color: Colors.white),
           Image.asset("assets/images/dog.jpg")
         ],
+      ),
+    );
+  }
+}
+
+class _LifeCycleWatcherUI extends State<ViewPage> with WidgetsBindingObserver {
+  var listStates = <AppLifecycleState>[];
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      listStates.add(state);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ListView.builder(
+        itemBuilder: (context, i) => GestureDetector(
+              child: ListTile(
+                title: Text("$i . ${listStates[i]}"),
+              ),
+              onTap: () {
+                print("row tapped $i . ${listStates[i]}");
+              },
+            ),
+        itemCount: listStates.length,
       ),
     );
   }
