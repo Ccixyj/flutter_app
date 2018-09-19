@@ -75,7 +75,7 @@ This document can be used as a cookbook by jumping around and finding questions 
                   child: ViewPage(11),
                 )),
         Entry(
-            "    How do I listen to Android activity lifecycle events(RxDart)?",
+            "    How do I use state mvvm (RxDart)?",
             builder: (ctx) => ViewPage(12))
       ])
     ])

@@ -9,6 +9,7 @@ import 'package:flutter_app/event/EventBus.dart';
 import 'package:flutter_app/model/LifeCycleModel.dart';
 import 'package:flutter_app/model/LifeCycleViewModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:rx_command/rx_command.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -633,6 +634,8 @@ class _RxLifeCycleWatcherUI extends State<ViewPage>
     with WidgetsBindingObserver {
   final m = LifeCycleViewModel();
 
+
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -640,13 +643,18 @@ class _RxLifeCycleWatcherUI extends State<ViewPage>
     m.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return LifeCycleProvider(
       m,
       child: Scaffold(
         appBar: AppBar(title: Text("rxcommand"), actions: <Widget>[
+          IconButton(
+              icon: new Icon(Icons.refresh),
+              tooltip: "new Data",
+              onPressed: () {
+                m.generate(1000);
+              }),
           Builder(
             builder: (c) => StateFullSwitch(
                   state: true,
@@ -667,38 +675,45 @@ class _RxLifeCycleWatcherUI extends State<ViewPage>
                 ),
                 style: new TextStyle(
                     fontSize: 20.0, color: new Color.fromARGB(255, 0, 0, 0)),
-                onChanged: m.textChangedCommand,
+                controller: m.txtController ,
               ),
             ),
             Flexible(
               child: StreamBuilder(
-                  stream: m.appStateCommand,
-                  builder: (BuildContext c,
-                      AsyncSnapshot<List<WordPair>> asyncData) {
-                    var m = LifeCycleProvider.of(c);
-                    if (asyncData.hasData && asyncData.data.isNotEmpty) {
-                      return ListView.builder(
-                          itemBuilder: (context, i) => GestureDetector(
-                                child: ListTile(
-                                  title: Builder(
-                                    builder: (ctx) {
-                                      print("build $i: ${asyncData.data[i]}");
-                                      return Text("$i . ${asyncData.data[i]}");
-                                    },
-                                  ),
-                                ),
-                                onTap: () {
-                                  print("row tapped $i . ${asyncData.data[i]}");
-                                },
-                                onLongPress: (){
-                                  m.remove(i);
-                                },
-                              ),
-                          itemCount: asyncData.data.length);
-                    } else {
+                  stream: m.wordCommand.isExecuting,
+                  builder: (BuildContext c, AsyncSnapshot<bool> asyncData) {
+                    if (asyncData.hasData && asyncData.data) {
                       return Center(
-                        child: Text("not data"),
+                        child: CircularProgressIndicator(),
                       );
+                    } else {
+                      var res = m.wordCommand.lastResult;
+                      print(res);
+                      if (res != null && res.isNotEmpty) {
+                        var data = m.wordCommand.lastResult;
+                        return ListView.builder(
+                            itemBuilder: (context, i) => GestureDetector(
+                                  child: ListTile(
+                                    title: Builder(
+                                      builder: (ctx) {
+                                        print("build $i: ${data[i]}");
+                                        return Text("$i . ${data[i]}");
+                                      },
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    print("row tapped $i . ${data[i]}");
+                                  },
+                                  onLongPress: () {
+                                    m.remove(i);
+                                  },
+                                ),
+                            itemCount: data.length);
+                      } else {
+                        return Center(
+                          child: Text("No Data"),
+                        );
+                      }
                     }
                   }),
             )
