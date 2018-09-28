@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/ClickAddPage.dart';
-import 'package:flutter_app/InfoPage.dart';
 import 'package:flutter_app/MainPage.dart';
 import 'package:flutter_app/event/EventBus.dart';
 

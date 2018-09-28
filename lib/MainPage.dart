@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/ClickAddPage.dart';
+import 'package:flutter_app/HtmlParse.dart';
 import 'package:flutter_app/InfoPage.dart';
 import 'package:flutter_app/RandomWord.dart';
 import 'package:flutter_app/event/EventBus.dart';
@@ -27,7 +28,8 @@ class MainPage extends StatelessWidget {
   final data = <Entry>[
     Entry("demos", children: [
       Entry("click demo", builder: (ctx) => ClickAddPage(title: "click demo")),
-      Entry("word demo", builder: (ctx) => RandomWords())
+      Entry("word demo", builder: (ctx) => RandomWords()),
+      Entry("html parse", builder: (ctx) => HtmlParse())
     ]),
     Entry("Flutter for Android Developers", children: [
       Entry("  View", children: [
@@ -74,8 +76,7 @@ This document can be used as a cookbook by jumping around and finding questions 
                   model: eventModel,
                   child: ViewPage(11),
                 )),
-        Entry(
-            "    How do I use state mvvm (RxDart)?",
+        Entry("    How do I use state mvvm (RxDart)?",
             builder: (ctx) => ViewPage(12))
       ])
     ])
