@@ -363,6 +363,7 @@ class _InterActAppPageState extends State<ViewPage> {
   StreamSubscription testToast() {
     return Future.delayed(Duration(milliseconds: 1200), () {
       print("delay executed!!!!");
+      return "delay executed!!!!";
     }).asStream().listen((t) {
       print("recive val $t");
       eventBus.fire(ToastEvent("toast event"));
@@ -634,8 +635,6 @@ class _RxLifeCycleWatcherUI extends State<ViewPage>
     with WidgetsBindingObserver {
   final m = LifeCycleViewModel();
 
-
-
   @override
   void dispose() {
     // TODO: implement dispose
@@ -675,7 +674,7 @@ class _RxLifeCycleWatcherUI extends State<ViewPage>
                 ),
                 style: new TextStyle(
                     fontSize: 20.0, color: new Color.fromARGB(255, 0, 0, 0)),
-                controller: m.txtController ,
+                controller: m.txtController,
               ),
             ),
             Flexible(
