@@ -3,6 +3,7 @@ import 'package:flutter_app/ClickAddPage.dart';
 import 'package:flutter_app/HtmlParse.dart';
 import 'package:flutter_app/InfoPage.dart';
 import 'package:flutter_app/RandomWord.dart';
+import 'package:flutter_app/UnlimitedImagePage.dart';
 import 'package:flutter_app/event/EventBus.dart';
 import 'package:flutter_app/model/LifeCycleModel.dart';
 import 'package:flutter_app/model/LifeCycleViewModel.dart';
@@ -10,7 +11,7 @@ import 'android/dev/View.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class Entry {
-  Entry(this.title, {this.builder, this.children = const <Entry>[]});
+  const Entry(this.title, {this.builder, this.children = const <Entry>[]});
 
   final String title;
   final WidgetBuilder builder;
@@ -29,7 +30,8 @@ class MainPage extends StatelessWidget {
     Entry("demos", children: [
       Entry("click demo", builder: (ctx) => ClickAddPage(title: "click demo")),
       Entry("word demo", builder: (ctx) => RandomWords()),
-      Entry("html parse", builder: (ctx) => HtmlParse())
+      Entry("html parse", builder: (ctx) => HtmlParse()),
+      Entry("image more and more", builder: (ctx) => UnlimitedImagePage())
     ]),
     Entry("Flutter for Android Developers", children: [
       Entry("  View", children: [
@@ -89,13 +91,13 @@ This document can be used as a cookbook by jumping around and finding questions 
         title: Text("select an item show"),
         actions: <Widget>[
           IconButton(
-              icon: new Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh),
               tooltip: "refresh theme",
               onPressed: () {
                 eventBus.fire(ThemeEvent());
               }),
           IconButton(
-              icon: new Icon(Icons.info),
+              icon: const Icon(Icons.info),
               tooltip: "show theme info",
               onPressed: () {
                 print(data);
@@ -110,6 +112,7 @@ This document can be used as a cookbook by jumping around and finding questions 
     );
   }
 }
+
 
 class EntryItem extends StatelessWidget {
   const EntryItem(this.entry);

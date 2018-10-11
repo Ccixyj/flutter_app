@@ -6,7 +6,50 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app/MainPage.dart';
 import 'package:flutter_app/event/EventBus.dart';
 
+
+class ImmutablePoint {
+  final num  x, y;
+
+  const ImmutablePoint(this.x, this.y);
+}
+
+
+
 void main() {
+  var a = const ImmutablePoint(1, 1);
+  var b = const ImmutablePoint(1, 1);
+  assert(identical(a, b)); // They are the same instance!
+
+  // Lots of const keywords here.
+  const pointAndLine = const {
+    'point': const [const ImmutablePoint(0, 0)],
+    'line': const [const ImmutablePoint(1, 10), const ImmutablePoint(-2, 11)],
+  };
+
+  final pointAndLine2 = const {
+    'point': const [const ImmutablePoint(0, 0)],
+    'line': const [const ImmutablePoint(1, 10), const ImmutablePoint(-2, 11)],
+  };
+
+  const pointAndLine3 =  {
+    'point':  [ ImmutablePoint(0, 0)],
+    'line':  [ ImmutablePoint(1, 10), const ImmutablePoint(-2, 11)],
+  };
+
+  final pointAndLine4 =  {
+    'point':  [ ImmutablePoint(0, 0)],
+    'line':  [ ImmutablePoint(1, 10), const ImmutablePoint(-2, 11)],
+  };
+
+  print("id : ${identical(pointAndLine, pointAndLine2)}");
+  print("id : ${identical(pointAndLine, pointAndLine3)}");
+  print("id : ${identical(pointAndLine2, pointAndLine3)}");
+  print("id : ${identical(pointAndLine2, pointAndLine4)}");
+
+
+  final c =  ImmutablePoint(1, 1);
+  print(identical(a, c));
+
   const chan = const MethodChannel('app.channel.plugin/toast');
   eventBus.on<ToastEvent>().listen((e) {
     print("ToastEvent $e");

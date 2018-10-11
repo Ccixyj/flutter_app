@@ -78,7 +78,9 @@ class _MyHomePageState extends State<ClickAddPage> {
               Text(
                 'You have pushed the button this many times:',
               ),
-              ScopedModelDescendant<CounterModel>(builder: (ctx,c,m) =>  new Text(md.counter.toString()),)
+              ScopedModelDescendant<CounterModel>(
+                builder: (ctx, c, m) => new Text(md.counter.toString()),
+              )
             ],
           ),
         ),
@@ -91,3 +93,4 @@ class _MyHomePageState extends State<ClickAddPage> {
     );
   }
 }
+

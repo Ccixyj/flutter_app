@@ -5,6 +5,7 @@ import 'package:english_words/english_words.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/android/dev/ImageLoader.dart';
 import 'package:flutter_app/event/EventBus.dart';
 import 'package:flutter_app/model/LifeCycleModel.dart';
 import 'package:flutter_app/model/LifeCycleViewModel.dart';
@@ -553,17 +554,8 @@ class _AssertsUI extends State<ViewPage> {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          Stack(
-            children: <Widget>[
-              Center(child: CircularProgressIndicator()),
-              Center(
-                child: FadeInImage.memoryNetwork(
-                  placeholder: kTransparentImage,
-                  image:
-                      'https://raw.githubusercontent.com/flutter/website/dash/src/_includes/code/layout/stack/images/pic.jpg',
-                ),
-              ),
-            ],
+          const ImageWithLoader(
+            'https://raw.githubusercontent.com/flutter/website/dash/src/_includes/code/layout/stack/images/pic.jpg',
           ),
           Divider(color: Colors.white),
           FadeInImage.memoryNetwork(
