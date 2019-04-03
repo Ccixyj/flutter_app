@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as htmlParser;
+import 'package:http/http.dart' as http;
 
 class Article {
   final String title;
@@ -39,7 +38,7 @@ class HtmlParse extends StatelessWidget {
           ],
         ),
       ),
-      body: FutureBuilder(
+      body: FutureBuilder<List<Article>>(
           future:
               http.get(url).then((r) => htmlParser.parse(r.body)).then((doc) {
             var nodes =
